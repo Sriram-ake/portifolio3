@@ -1,0 +1,25 @@
+{
+  "name": "a-sri-ram-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Developer Portfolio for A Sri Ram — B.Tech Information Technology Student",
+  "scripts": {
+    "start": "python serve.py 5173",
+    "server": "agy-node server.js",
+    "node": "node server.js",
+    "preview": "python serve.py 5173"
+  },
+  "keywords": [
+    "portfolio",
+    "developer",
+    "react",
+    "threejs",
+    "gsap",
+    "brevo",
+    "full-stack",
+    "spring-boot",
+    "java"
+  ],
+  "author": "A Sri Ram <akesurekha@gmail.com>",
+  "license": "MIT"
+}
