@@ -1,9 +1,9 @@
 /**
- * A Sri Ram Developer Portfolio — Local Development Server
+ * A Sri Ram Developer Portfolio — Production & Development Server
  * 
- * In production on Vercel, requests to /api/* are automatically handled
- * as serverless functions by files in the api/ directory (e.g. api/contact.js).
- * This server.js script is preserved for local development and testing.
+ * Used for deployment on Render (and local development).
+ * Dispatches API requests directly to modular handlers in the api/ directory
+ * and serves static assets and SPA fallback with high performance.
  */
 
 const http = require('http');
@@ -29,7 +29,7 @@ function loadEnv() {
       const idx = line.indexOf('=');
       const key = line.slice(0, idx).trim();
       const val = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
-      if (process.env[key] === undefined) {
+      if (process.env[key] === undefined || process.env[key] === '') {
         process.env[key] = val;
       }
     }

@@ -1,7 +1,30 @@
 /**
- * Vercel Serverless Function: /api/contact/status
+ * Contact Status API Handler
  * Returns boolean status of Brevo email service configuration without leaking secrets.
+ * Compatible with both Vercel serverless functions and Render (node server.js).
  */
+
+const fs = require('fs');
+const path = require('path');
+
+function ensureEnv() {
+  if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER_EMAIL) return;
+  const envPath = path.join(__dirname, '..', '.env');
+  if (!fs.existsSync(envPath)) return;
+  try {
+    const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line || line.startsWith('#') || !line.includes('=')) continue;
+      const idx = line.indexOf('=');
+      const key = line.slice(0, idx).trim();
+      const val = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+      if (process.env[key] === undefined || process.env[key] === '') {
+        process.env[key] = val;
+      }
+    }
+  } catch (_) {}
+}
 
 function sendJson(res, statusCode, data) {
   if (typeof res.status === 'function') {
@@ -17,6 +40,8 @@ function sendJson(res, statusCode, data) {
 }
 
 module.exports = async function handler(req, res) {
+  ensureEnv();
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

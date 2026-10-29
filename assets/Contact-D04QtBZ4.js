@@ -60,7 +60,7 @@ function y(){
             setAnnouncement(msg);
           }
         }catch(netErr){
-          let msg="Network error: Unable to reach the server. Please check your connection.";
+          let msg="Unable to reach the server right now. Please check your connection or email akesurekha@gmail.com directly.";
           setServerError(msg);
           setAnnouncement(msg);
         }finally{

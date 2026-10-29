@@ -1,10 +1,36 @@
 /**
- * Vercel Serverless Function: /api/contact
+ * Contact Form API Handler
  * Handles contact form submissions directly through the Brevo Transactional Email API.
- * Never exposes the API key to client-side bundles.
+ * Compatible with both Vercel serverless functions and Render (node server.js).
+ * Never exposes API keys or internal errors to client-side responses.
  */
 
-// In-memory rate limiting map for warm serverless instances
+const fs = require('fs');
+const path = require('path');
+
+// Ensure .env is read if environment variables are not pre-injected
+function ensureEnv() {
+  if (process.env.BREVO_API_KEY && process.env.BREVO_SENDER_EMAIL) return;
+  const envPath = path.join(__dirname, '..', '.env');
+  if (!fs.existsSync(envPath)) return;
+  try {
+    const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line || line.startsWith('#') || !line.includes('=')) continue;
+      const idx = line.indexOf('=');
+      const key = line.slice(0, idx).trim();
+      const val = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+      if (process.env[key] === undefined || process.env[key] === '') {
+        process.env[key] = val;
+      }
+    }
+  } catch (_) {}
+}
+
+ensureEnv();
+
+// In-memory rate limiting map
 const rateLimits = new Map();
 const RATE_LIMIT_MAX = parseInt(process.env.CONTACT_RATE_LIMIT || '5', 10);
 const RATE_LIMIT_WINDOW = parseInt(process.env.CONTACT_RATE_WINDOW || '3600', 10) * 1000;
@@ -75,6 +101,8 @@ async function parseBody(req) {
 }
 
 module.exports = async function handler(req, res) {
+  ensureEnv();
+
   // Common CORS and caching headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -137,22 +165,24 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 422, { ok: false, error: 'Message must be between 10 and 2000 characters.' });
     }
 
-    // 4. Server-side Brevo credentials verification
+    // 4. Server-side Brevo credentials verification at runtime
     const apiKey = (process.env.BREVO_API_KEY || '').trim();
     const senderEmail = (process.env.BREVO_SENDER_EMAIL || '').trim();
     const senderName = (process.env.BREVO_SENDER_NAME || 'A Sri Ram Portfolio Contact Form').trim();
     const receiverEmail = (process.env.CONTACT_RECEIVER_EMAIL || '').trim() || 'akesurekha@gmail.com';
 
     if (!apiKey) {
+      console.error('>> [Contact API Error] BREVO_API_KEY environment variable is not configured on the server.');
       return sendJson(res, 503, {
         ok: false,
-        error: 'Brevo API key is not configured on the server. Please configure BREVO_API_KEY in Vercel environment variables or email directly at akesurekha@gmail.com.'
+        error: 'The contact service is temporarily unavailable. Please try again later or email directly at akesurekha@gmail.com.'
       });
     }
     if (!senderEmail) {
+      console.error('>> [Contact API Error] BREVO_SENDER_EMAIL environment variable is not configured on the server.');
       return sendJson(res, 503, {
         ok: false,
-        error: 'Brevo sender email is not configured on the server. Please configure BREVO_SENDER_EMAIL in Vercel environment variables or email directly at akesurekha@gmail.com.'
+        error: 'The contact service is temporarily unavailable. Please try again later or email directly at akesurekha@gmail.com.'
       });
     }
 
@@ -194,7 +224,7 @@ module.exports = async function handler(req, res) {
           'api-key': apiKey,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'User-Agent': 'A-Sri-Ram-Portfolio-Vercel/1.0'
+          'User-Agent': 'A-Sri-Ram-Portfolio/1.0'
         },
         body: JSON.stringify(payload)
       });
@@ -202,20 +232,26 @@ module.exports = async function handler(req, res) {
       const bodyText = await brevoResp.text().catch(() => '');
 
       if ([200, 201, 202].includes(brevoResp.status)) {
+        let messageId = '';
+        try {
+          const parsed = JSON.parse(bodyText);
+          messageId = parsed.messageId || '';
+        } catch (_) {}
+        console.log(`>> [Brevo] Email dispatched successfully to ${receiverEmail}. Message ID: ${messageId || 'accepted'}`);
         return sendJson(res, 200, { ok: true, message: 'Message sent successfully!' });
       }
 
-      console.error(`>> [Brevo] HTTP ${brevoResp.status}:`, bodyText.slice(0, 300));
-      let errDetail = 'Failed to dispatch email via provider.';
-      try {
-        const parsed = JSON.parse(bodyText);
-        if (parsed.message) errDetail = parsed.message;
-      } catch (_) {}
-
-      return sendJson(res, 502, { ok: false, error: errDetail });
+      console.error(`>> [Brevo API Error] HTTP ${brevoResp.status}:`, bodyText.slice(0, 500));
+      return sendJson(res, 502, {
+        ok: false,
+        error: 'Unable to send message right now. Please try again or email akesurekha@gmail.com directly.'
+      });
     } catch (err) {
-      console.error('>> [Brevo] Transport error:', err.message);
-      return sendJson(res, 502, { ok: false, error: 'Failed to connect to email provider. Please try again later.' });
+      console.error('>> [Brevo Transport Error]:', err.message);
+      return sendJson(res, 502, {
+        ok: false,
+        error: 'Unable to send message right now. Please try again or email akesurekha@gmail.com directly.'
+      });
     }
   }
 
