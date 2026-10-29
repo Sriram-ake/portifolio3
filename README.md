@@ -1,6 +1,6 @@
 # A Sri Ram · Developer Portfolio
 
-A developer portfolio faithfully replicating the motion-rich, typography-led reference design with verified personal information, projects, technical skills, and statistics.
+A developer portfolio faithfully replicating the motion-rich, typography-led reference design with verified personal details, projects, technical skills, and a **direct Brevo transactional email integration** running as Vercel serverless functions.
 
 ---
 
@@ -22,6 +22,12 @@ A developer portfolio faithfully replicating the motion-rich, typography-led ref
   - 3D card perspective tilting with dynamic specular mouse glare.
   - Infinite scroll-velocity-adaptive marquee of core skills.
   - Animated live counters with `expo.out` easing for statistics.
+- **Direct Brevo Email Integration (Serverless):**
+  - Sends messages directly to `akesurekha@gmail.com` via the official Brevo Transactional Email API.
+  - Zero reliance on `mailto:`, Gmail, or external email clients.
+  - Runs entirely as a Node.js serverless API function on Vercel (`api/contact.js`).
+  - Strict input validation, in-memory rate limiting, and bot honeypot protection.
+  - In-flight `"Sending..."` state, success confirmation, and error alerts without wiping user input on failure.
 - **Verified Data:**
   - Real LeetCode problem solving metrics (419+ solved).
   - Genuine project repositories: *Masteria*, *Developer Command Center*, *Flappy Bird: Neural Flight*, *Calculator*, *DSA Suite*, etc.
@@ -29,38 +35,72 @@ A developer portfolio faithfully replicating the motion-rich, typography-led ref
 
 ---
 
-## ✦ Routes
+## ✦ Project Structure
 
-| Route | Page | Description |
-|---|---|---|
-| `/` | Home | Hero introduction, skill marquee, key statistics, short bio, featured projects |
-| `/projects` | Projects | 3D interactive carousel view + grid view with GitHub discovery |
-| `/projects/:slug` | Project Detail | In-depth project case studies, metric cards, architecture stories, tech pills |
-| `/stack` | Stack | 3D interactive skill sphere and grouped taxonomy of technologies |
-| `/proof` | Proof | DSA metrics, verified certifications, achievements, education timeline |
-| `/contact` | Contact | Direct email link, social profiles, and interactive note dispatch form |
-
----
-
-## ✦ Running Locally
-
-To preview the portfolio locally with full single-page application routing support:
-
-```bash
-# Using Python
-python serve.py 5173
-
-# Or with npm
-npm start
+```
+portifolio3/
+├── api/
+│   ├── contact.js          # Vercel serverless function: POST /api/contact (Brevo)
+│   ├── stats.js            # Vercel serverless function: GET /api/stats
+│   └── contact/
+│       └── status.js       # Vercel serverless function: GET /api/contact/status
+├── assets/                 # Frontend JS chunks, CSS, WOFF2 variable fonts
+├── favicon.svg             # Theme-aligned brand icon
+├── index.html              # HTML entry point with metadata & base href
+├── og.png                  # Open Graph preview card
+├── package.json            # Node scripts and project configuration
+├── resume.pdf              # Verified PDF resume
+├── server.js               # Local development Node.js server
+├── serve.py                # Optional local Python preview server
+├── vercel.json             # Vercel routing, rewrites, and caching headers
+├── .env.example            # Environment variables template
+└── .gitignore              # Protects secrets and build artifacts
 ```
 
-Then open [http://localhost:5173](http://localhost:5173) in your browser.
+---
+
+## ✦ Deploying to Vercel (Direct from GitHub)
+
+This repository is pre-configured for complete deployment on **Vercel** with no separate backend required:
+
+1. Push your repository to GitHub:
+   ```bash
+   git add .
+   git commit -m "Configure Vercel serverless functions and routing"
+   git push origin main
+   ```
+2. Log in to [Vercel](https://vercel.com) and click **"Add New Project"**.
+3. Import your repository: **`Sriram-ake/portifolio3`**.
+4. In **Project Settings > Environment Variables**, add the following:
+
+   | Variable | Value | Description |
+   |---|---|---|
+   | `BREVO_API_KEY` | `xkeysib-...` | Your Brevo API v3 key from [Brevo Settings](https://app.brevo.com/settings/keys/api) |
+   | `BREVO_SENDER_EMAIL` | `your_verified_email@domain.com` | Your verified sender email address in Brevo |
+   | `BREVO_SENDER_NAME` | `A Sri Ram Portfolio Contact Form` | Sender display name |
+   | `CONTACT_RECEIVER_EMAIL`| `akesurekha@gmail.com` | Destination inbox for contact inquiries |
+
+5. Click **"Deploy"**. Vercel will build the project and serve both:
+   - The static frontend across its global Edge Network.
+   - The `/api/contact` and `/api/stats` serverless functions on demand.
 
 ---
 
-## ✦ Deployment
+## ✦ Local Development
 
-The portfolio is static and production-ready for deployment on **Vercel**, **Netlify**, **Render**, or **GitHub Pages**.
+To run the project locally:
 
-A `vercel.json` rewrite configuration is included out of the box for client-side routing.
-"# portifolio3" 
+### Option 1: Node.js (Recommended)
+```bash
+npm start
+# or: node server.js
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Option 2: Python
+```bash
+python serve.py 5173
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+For local email testing, create a `.env` file from `.env.example` and populate your Brevo credentials.

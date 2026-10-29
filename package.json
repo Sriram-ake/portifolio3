@@ -4,10 +4,11 @@
   "private": true,
   "description": "Developer Portfolio for A Sri Ram — B.Tech Information Technology Student",
   "scripts": {
-    "start": "python serve.py 5173",
-    "server": "agy-node server.js",
-    "node": "node server.js",
-    "preview": "python serve.py 5173"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "serve": "python serve.py 5173",
+    "preview": "node server.js",
+    "test": "node --check api/contact.js && node --check api/contact/status.js && node --check api/stats.js && node --check server.js"
   },
   "keywords": [
     "portfolio",
@@ -16,6 +17,8 @@
     "threejs",
     "gsap",
     "brevo",
+    "vercel",
+    "serverless",
     "full-stack",
     "spring-boot",
     "java"
