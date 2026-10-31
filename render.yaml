@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: a-sri-ram-portfolio
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: BREVO_SENDER_NAME
+        value: A Sri Ram Portfolio Contact Form
+      - key: CONTACT_RECEIVER_EMAIL
+        value: akesurekha@gmail.com
+      - key: CONTACT_RATE_LIMIT
+        value: "5"
+      - key: CONTACT_RATE_WINDOW
+        value: "3600"

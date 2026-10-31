@@ -5,6 +5,7 @@
   "description": "Developer Portfolio for A Sri Ram — B.Tech Information Technology Student",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'Assets pre-built'",
     "dev": "node server.js",
     "serve": "python serve.py 5173",
     "preview": "node server.js",
